@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="টিউটর ডায়েরি">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>টিউটর ডায়েরি</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────── */
+:root {
+  --bg:      #f5f3ef;
+  --surface: #ffffff;
+  --ink:     #1a1a2e;
+  --muted:   #6b7280;
+  --border:  #e2ddd8;
+  --accent:  #2563eb;
+  --accent-l:#dbeafe;
+  --green:   #16a34a;
+  --green-l: #dcfce7;
+  --amber:   #d97706;
+  --amber-l: #fef3c7;
+  --red:     #dc2626;
+  --red-l:   #fee2e2;
+  --radius:  12px;
+  --shadow:  0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+}
+
+/* ── RESET ──────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Hind Siliguri', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+/* ── HEADER ─────────────────────────────────────── */
+.app-header {
+  background: var(--ink);
+  color: #fff;
+  padding: 14px 16px 12px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.app-header-left h1 { font-size: 1.15rem; font-weight: 700; }
+.app-header-left p  { font-size: 0.72rem; color: #9ca3af; margin-top: 1px; }
+.header-badge {
+  background: var(--accent); color: #fff;
+  border-radius: 20px; padding: 4px 12px;
+  font-size: 0.75rem; font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── BOTTOM NAV ─────────────────────────────────── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.08);
+}
+.nav-btn {
+  flex: 1; border: none; background: none;
+  font-family: inherit; cursor: pointer;
+  padding: 10px 4px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: var(--muted); transition: color .15s;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-btn .nav-icon { font-size: 1.3rem; line-height: 1; }
+.nav-btn .nav-label { font-size: 0.68rem; font-weight: 600; }
+
+/* ── SCROLL AREA ─────────────────────────────────── */
+.scroll-area {
+  padding: 16px 14px calc(80px + env(safe-area-inset-bottom));
+  max-width: 600px; margin: 0 auto;
+}
+
+/* ── PAGES ───────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── SECTION TITLE ───────────────────────────────── */
+.section-title {
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); margin: 20px 0 10px;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* ── CARD ────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 0.88rem; font-weight: 700;
+  color: var(--accent); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 7px;
+}
+
+/* ── FORM ────────────────────────────────────────── */
+.field { margin-bottom: 12px; }
+.field label {
+  display: block; font-size: 0.75rem; font-weight: 600;
+  color: var(--muted); margin-bottom: 5px;
+}
+.field input, .field select, .field textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  font-family: inherit; font-size: 0.9rem; color: var(--ink);
+  background: var(--bg); transition: border-color .15s;
+  -webkit-appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--accent); background: #fff;
+}
+.field textarea { resize: none; line-height: 1.5; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 11px 16px; border: none; border-radius: 8px;
+  font-family: inherit; font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; transition: opacity .15s, transform .1s;
+  -webkit-appearance: none;
+}
+.btn:active { transform: scale(.97); opacity: .88; }
+.btn-primary  { background: var(--accent); color: #fff; }
+.btn-success  { background: var(--green);  color: #fff; }
+.btn-danger   { background: var(--red);    color: #fff; }
+.btn-ghost    { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.btn-full     { width: 100%; }
+.btn-sm       { padding: 6px 11px; font-size: 0.78rem; border-radius: 6px; }
+
+/* ── STAT ROW (dashboard) ────────────────────────── */
+.stat-row {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+  margin-bottom: 14px;
+}
+.stat-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 8px; text-align: center;
+  box-shadow: var(--shadow);
+}
+.stat-box .sv { font-size: 1.5rem; font-weight: 700; color: var(--ink); line-height: 1; }
+.stat-box .sl { font-size: 0.68rem; color: var(--muted); margin-top: 3px; font-weight: 600; }
+
+/* ── SESSION ITEM ────────────────────────────────── */
+.session-item {
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 13px; margin-bottom: 9px;
+  background: var(--surface);
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.session-item .si-body { flex: 1; min-width: 0; }
+.si-name  { font-weight: 700; font-size: 0.95rem; }
+.si-time  { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+.si-topic { font-size: 0.78rem; color: var(--accent); margin-top: 4px; font-weight: 500; }
+.si-note  { font-size: 0.75rem; color: var(--muted); margin-top: 3px; font-style: italic; }
+.si-date-badge {
+  flex-shrink: 0;
+  background: var(--ink); color: #fff;
+  border-radius: 6px; padding: 4px 8px;
+  font-size: 0.72rem; font-weight: 600;
+  text-align: center; line-height: 1.3;
+}
+
+/* ── STUDENT CARD ────────────────────────────────── */
+.student-card {
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px; margin-bottom: 10px;
+  background: var(--surface);
+  display: flex; align-items: center; gap: 12px;
+}
+.student-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 700; flex-shrink: 0;
+}
+.student-info { flex: 1; min-width: 0; }
+.student-info .sn { font-weight: 700; font-size: 0.95rem; }
+.student-info .sm { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.student-info .stags { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+
+/* ── TAG / BADGE ─────────────────────────────────── */
+.tag {
+  display: inline-block; padding: 2px 9px;
+  border-radius: 20px; font-size: 0.7rem; font-weight: 600;
+}
+.tag-blue   { background: var(--accent-l); color: var(--accent); }
+.tag-green  { background: var(--green-l);  color: var(--green); }
+.tag-amber  { background: var(--amber-l);  color: var(--amber); }
+
+/* ── SUMMARY TABLE ───────────────────────────────── */
+.sum-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.sum-table th {
+  background: var(--ink); color: #fff;
+  padding: 9px 10px; text-align: left; font-weight: 600;
+}
+.sum-table th:first-child { border-radius: 8px 0 0 0; }
+.sum-table th:last-child  { border-radius: 0 8px 0 0; }
+.sum-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); }
+.sum-table tr:last-child td { border-bottom: none; }
+.sum-table tr:hover td { background: var(--bg); }
+
+/* ── DATE GROUP HEADER ───────────────────────────── */
+.date-header {
+  font-size: 0.72rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 0 5px;
+}
+
+/* ── MONTH BANNER ────────────────────────────────── */
+.month-banner {
+  background: linear-gradient(135deg, var(--ink) 0%, #2d3561 100%);
+  color: #fff; border-radius: var(--radius);
+  padding: 16px; margin-bottom: 14px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.month-banner-title { font-size: 1rem; font-weight: 700; }
+.month-banner-sub   { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
+.month-banner-icon  { font-size: 2rem; opacity: .7; }
+
+/* ── INFO ROW ────────────────────────────────────── */
+.info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0; border-bottom: 1px dashed var(--border);
+  font-size: 0.82rem;
+}
+.info-row:last-child { border-bottom: none; }
+.info-row .ik { color: var(--muted); }
+.info-row .iv { font-weight: 700; color: var(--ink); }
+
+/* ── EMPTY STATE ─────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 40px 20px; color: var(--muted);
+}
+.empty-state .ei { font-size: 2.8rem; margin-bottom: 10px; }
+.empty-state p   { font-size: 0.85rem; line-height: 1.6; }
+
+/* ── TOAST ───────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: calc(70px + env(safe-area-inset-bottom) + 12px);
+  left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: #fff;
+  padding: 10px 20px; border-radius: 8px;
+  font-size: 0.85rem; font-weight: 600;
+  opacity: 0; transition: all .25s; z-index: 999;
+  white-space: nowrap; pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.ok  { background: var(--green); }
+#toast.err { background: var(--red); }
+
+/* ── MODAL ───────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  z-index: 200; display: none; align-items: flex-end;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--surface); border-radius: 16px 16px 0 0;
+  padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+  width: 100%; max-height: 90dvh; overflow-y: auto;
+}
+.modal-title {
+  font-size: 1rem; font-weight: 700;
+  margin-bottom: 16px; display: flex; justify-content: space-between;
+}
+.modal-close {
+  background: none; border: none; font-size: 1.3rem;
+  cursor: pointer; color: var(--muted); padding: 0 4px;
+}
+
+/* ── DIVIDER ─────────────────────────────────────── */
+.divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+
+/* ── FILTER BAR ──────────────────────────────────── */
+.filter-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+.filter-bar select, .filter-bar input {
+  flex: 1; padding: 9px 10px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  font-family: inherit; font-size: 0.85rem; color: var(--ink);
+  background: var(--surface); -webkit-appearance: none;
+}
+.filter-bar select:focus, .filter-bar input:focus {
+  outline: none; border-color: var(--accent);
+}
+
+@media (min-width: 480px) {
+  .scroll-area { padding: 20px 20px calc(80px + env(safe-area-inset-bottom)); }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════ -->
+<header class="app-header">
+  <div class="app-header-left">
+    <h1>📒 টিউটর ডায়েরি</h1>
+    <p id="hdr-date">লোড হচ্ছে...</p>
+  </div>
+  <span class="header-badge" id="hdr-badge" style="display:none"></span>
+</header>
+
+<!-- ══ PAGES ════════════════════════════════════════ -->
+<div class="scroll-area">
+
+  <!-- ── PAGE: HOME / LOG ───────────────────────── -->
+  <div class="page active" id="page-home">
+
+    <!-- Stats -->
+    <div class="stat-row" id="dash-stats">
+      <div class="stat-box"><div class="sv" id="s-today">0</div><div class="sl">আজ সেশন</div></div>
+      <div class="stat-box"><div class="sv" id="s-month">0</div><div class="sl">এ মাসে</div></div>
+      <div class="stat-box"><div class="sv" id="s-students">0</div><div class="sl">ছাত্র</div></div>
+    </div>
+
+    <!-- Add session card -->
+    <div class="section-title">নতুন সেশন রেকর্ড করো</div>
+    <div class="card">
+      <div class="field">
+        <label>ছাত্রের নাম *</label>
+        <select id="log-student">
+          <option value="">— ছাত্র বেছে নাও —</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>পড়ানোর তারিখ *</label>
+          <input type="date" id="log-date">
+        </div>
+        <div class="field">
+          <label>মাস শুরুর তারিখ</label>
+          <input type="date" id="log-monthstart">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>শুরুর সময় *</label>
+          <input type="time" id="log-start">
+        </div>
+        <div class="field">
+          <label>শেষের সময় *</label>
+          <input type="time" id="log-end">
+        </div>
+      </div>
+      <div class="field">
+        <label>কী পড়ালাম (বিষয় / টপিক)</label>
+        <input type="text" id="log-topic" placeholder="যেমন: গণিত — অধ্যায় ৫, সমীকরণ">
+      </div>
+      <div class="field">
+        <label>বাড়তি নোট</label>
+        <textarea id="log-note" rows="2" placeholder="পরীক্ষার প্রস্তুতি, হোমওয়ার্ক দিলাম..."></textarea>
+      </div>
+      <button class="btn btn-success btn-full" onclick="addSession()">✅ সেশন সেভ করো</button>
+    </div>
+
+    <!-- Today's sessions -->
+    <div id="today-wrap" style="display:none">
+      <div class="section-title">আজকের সেশন</div>
+      <div id="today-list"></div>
+    </div>
+
+  </div>
+
+  <!-- ── PAGE: HISTORY ──────────────────────────── -->
+  <div class="page" id="page-history">
+    <div class="section-title">সেশনের ইতিহাস</div>
+    <div class="filter-bar">
+      <select id="flt-student" onchange="renderHistory()">
+        <option value="">সব ছাত্র</option>
+      </select>
+      <input type="month" id="flt-month" onchange="renderHistory()">
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- ── PAGE: STUDENTS ─────────────────────────── -->
+  <div class="page" id="page-students">
+    <div class="section-title">নতুন ছাত্র যোগ করো</div>
+    <div class="card">
+      <div class="grid-2">
+        <div class="field">
+          <label>নাম *</label>
+          <input type="text" id="st-name" placeholder="ছাত্রের নাম">
+        </div>
+        <div class="field">
+          <label>শ্রেণী</label>
+          <input type="text" id="st-class" placeholder="ক্লাস ৯">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>মাসিক বেতন (৳)</label>
+          <input type="number" id="st-fee" placeholder="৩০০০">
+        </div>
+        <div class="field">
+          <label>ফোন</label>
+          <input type="tel" id="st-phone" placeholder="01XXXXXXXXX">
+        </div>
+      </div>
+      <div class="field">
+        <label>ঠিকানা / নোট</label>
+        <input type="text" id="st-addr" placeholder="বাসার ঠিকানা বা যেকোনো নোট">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="addStudent()">➕ ছাত্র যোগ করো</button>
+    </div>
+
+    <div class="section-title">ছাত্রের তালিকা</div>
+    <div id="student-list"></div>
+  </div>
+
+  <!-- ── PAGE: SUMMARY ──────────────────────────── -->
+  <div class="page" id="page-summary">
+    <div class="section-title">মাসিক সারসংক্ষেপ</div>
+    <div class="field">
+      <input type="month" id="sum-month" onchange="renderSummary()">
+    </div>
+    <div id="summary-content"></div>
+  </div>
+
+</div><!-- /scroll-area -->
+
+<!-- ══ BOTTOM NAV ═══════════════════════════════════ -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="goPage('home',this)">
+    <span class="nav-icon">✏️</span>
+    <span class="nav-label">সেশন</span>
+  </button>
+  <button class="nav-btn" onclick="goPage('history',this)">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">ইতিহাস</span>
+  </button>
+  <button class="nav-btn" onclick="goPage('students',this)">
+    <span class="nav-icon">👨‍🎓</span>
+    <span class="nav-label">ছাত্র</span>
+  </button>
+  <button class="nav-btn" onclick="goPage('summary',this)">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">রিপোর্ট</span>
+  </button>
+</nav>
+
+<!-- ══ SESSION DETAIL MODAL ══════════════════════════ -->
+<div class="modal-overlay" id="detail-modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span>সেশন বিবরণ</span>
+      <button class="modal-close" onclick="document.getElementById('detail-modal').classList.remove('open')">✕</button>
+    </div>
+    <div id="detail-body"></div>
+    <hr class="divider">
+    <button class="btn btn-danger btn-full btn-sm" id="detail-del-btn">🗑 এই সেশন মুছে ফেলো</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ── DATA LAYER ──────────────────────────────────── */
+const DB = {
+  students: () => JSON.parse(localStorage.getItem('td_students') || '[]'),
+  sessions: () => JSON.parse(localStorage.getItem('td_sessions') || '[]'),
+  saveStudents: d => localStorage.setItem('td_students', JSON.stringify(d)),
+  saveSessions: d => localStorage.setItem('td_sessions', JSON.stringify(d)),
+};
+
+/* ── UTILS ───────────────────────────────────────── */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const todayStr = () => new Date().toISOString().slice(0,10);
+const monthStr = () => new Date().toISOString().slice(0,7);
+
+function toMin(t) {
+  if (!t) return 0;
+  const [h,m] = t.split(':').map(Number);
+  return h*60+m;
+}
+function durLabel(s,e) {
+  const d = toMin(e)-toMin(s);
+  if (d<=0) return '—';
+  const h=Math.floor(d/60), m=d%60;
+  return h ? `${h}ঘ ${m}মি` : `${m} মিনিট`;
+}
+function fmtDate(str) {
+  if (!str) return '—';
+  const d = new Date(str+'T00:00:00');
+  return d.toLocaleDateString('bn-BD',{day:'numeric',month:'long',year:'numeric'});
+}
+function fmtDateShort(str) {
+  if (!str) return '';
+  const [,m,d] = str.split('-');
+  return `${d}/${m}`;
+}
+function initials(name) {
+  return name ? name[0].toUpperCase() : '?';
+}
+
+/* ── TOAST ───────────────────────────────────────── */
+let toastTimer;
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 2500);
+}
+
+/* ── NAV ─────────────────────────────────────────── */
+function goPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id==='history') renderHistory();
+  if (id==='summary') renderSummary();
+  if (id==='students') renderStudents();
+  if (id==='home') { updateDash(); renderToday(); }
+}
+
+/* ── DASHBOARD ───────────────────────────────────── */
+function updateDash() {
+  const sessions = DB.sessions();
+  const today = todayStr(), month = monthStr();
+  document.getElementById('s-today').textContent = sessions.filter(s=>s.date===today).length;
+  document.getElementById('s-month').textContent = sessions.filter(s=>s.date&&s.date.startsWith(month)).length;
+  document.getElementById('s-students').textContent = DB.students().length;
+
+  const now = new Date();
+  document.getElementById('hdr-date').textContent =
+    now.toLocaleDateString('bn-BD',{weekday:'short',day:'numeric',month:'long'});
+
+  const tc = sessions.filter(s=>s.date===today).length;
+  const badge = document.getElementById('hdr-badge');
+  if (tc) { badge.textContent = `আজ ${tc}টি`; badge.style.display=''; }
+  else badge.style.display='none';
+}
+
+/* ── STUDENTS ────────────────────────────────────── */
+function addStudent() {
+  const name  = document.getElementById('st-name').value.trim();
+  const cls   = document.getElementById('st-class').value.trim();
+  const fee   = document.getElementById('st-fee').value.trim();
+  const phone = document.getElementById('st-phone').value.trim();
+  const addr  = document.getElementById('st-addr').value.trim();
+  if (!name) return toast('নাম দেওয়া বাধ্যতামূলক', 'err');
+  const students = DB.students();
+  if (students.find(s=>s.name===name)) return toast('এই নামের ছাত্র আগেই আছে', 'err');
+  students.push({id:uid(), name, cls, fee, phone, addr});
+  DB.saveStudents(students);
+  ['st-name','st-class','st-fee','st-phone','st-addr'].forEach(id => document.getElementById(id).value='');
+  syncDropdowns();
+  renderStudents();
+  toast(`${name} যোগ হয়েছে ✅`);
+}
+
+function deleteStudent(id) {
+  const st = DB.students().find(s=>s.id===id);
+  if (!confirm(`"${st?.name}" কে মুছবে? তার সব সেশন ডেটা থাকবে।`)) return;
+  DB.saveStudents(DB.students().filter(s=>s.id!==id));
+  syncDropdowns();
+  renderStudents();
+  toast('ছাত্র মুছে ফেলা হয়েছে');
+}
+
+function renderStudents() {
+  const students = DB.students();
+  const sessions = DB.sessions();
+  const el = document.getElementById('student-list');
+  if (!students.length) {
+    el.innerHTML = `<div class="empty-state"><div class="ei">👨‍🎓</div><p>এখনো কোনো ছাত্র যোগ করোনি।<br>উপরের ফর্ম থেকে যোগ করো।</p></div>`;
+    return;
+  }
+  el.innerHTML = students.map(st => {
+    const count = sessions.filter(s=>s.studentId===st.id).length;
+    const thisM = sessions.filter(s=>s.studentId===st.id && s.date&&s.date.startsWith(monthStr())).length;
+    return `<div class="student-card">
+      <div class="student-avatar">${initials(st.name)}</div>
+      <div class="student-info">
+        <div class="sn">${st.name}</div>
+        <div class="sm">${[st.cls,st.phone,st.addr].filter(Boolean).join(' · ') || 'কোনো বাড়তি তথ্য নেই'}</div>
+        <div class="stags">
+          ${st.fee ? `<span class="tag tag-green">৳${st.fee}/মাস</span>` : ''}
+          <span class="tag tag-blue">${count}টি সেশন</span>
+          ${thisM ? `<span class="tag tag-amber">এ মাসে ${thisM}টি</span>` : ''}
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteStudent('${st.id}')">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+function syncDropdowns() {
+  const students = DB.students();
+  const opts = `<option value="">— ছাত্র বেছে নাও —</option>` +
+    students.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('log-student').innerHTML = opts;
+
+  const fltOpts = `<option value="">সব ছাত্র</option>` +
+    students.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('flt-student').innerHTML = fltOpts;
+}
+
+/* ── SESSIONS ────────────────────────────────────── */
+function addSession() {
+  const studentId = document.getElementById('log-student').value;
+  const date      = document.getElementById('log-date').value;
+  const monthstart= document.getElementById('log-monthstart').value;
+  const start     = document.getElementById('log-start').value;
+  const end       = document.getElementById('log-end').value;
+  const topic     = document.getElementById('log-topic').value.trim();
+  const note      = document.getElementById('log-note').value.trim();
+
+  if (!studentId) return toast('ছাত্র বেছে নাও', 'err');
+  if (!date)      return toast('তারিখ দাও', 'err');
+  if (!start||!end) return toast('শুরু ও শেষ সময় দাও', 'err');
+  if (toMin(end)<=toMin(start)) return toast('শেষ সময় শুরুর পরে হতে হবে', 'err');
+
+  const student = DB.students().find(s=>s.id===studentId);
+  const sessions = DB.sessions();
+  sessions.unshift({
+    id:uid(), studentId, studentName:student.name,
+    date, monthstart, start, end, topic, note,
+    createdAt: Date.now()
+  });
+  DB.saveSessions(sessions);
+
+  document.getElementById('log-topic').value = '';
+  document.getElementById('log-note').value = '';
+  updateDash();
+  renderToday();
+  toast(`${student.name} — সেশন সেভ হয়েছে ✅`);
+}
+
+function deleteSession(id) {
+  DB.saveSessions(DB.sessions().filter(s=>s.id!==id));
+  document.getElementById('detail-modal').classList.remove('open');
+  renderHistory();
+  renderToday();
+  updateDash();
+  toast('সেশন মুছে ফেলা হয়েছে');
+}
+
+function openDetail(id) {
+  const s = DB.sessions().find(x=>x.id===id);
+  if (!s) return;
+  document.getElementById('detail-body').innerHTML = `
+    <div class="info-row"><span class="ik">ছাত্র</span><span class="iv">${s.studentName}</span></div>
+    <div class="info-row"><span class="ik">তারিখ</span><span class="iv">${fmtDate(s.date)}</span></div>
+    <div class="info-row"><span class="ik">সময়</span><span class="iv">${s.start} — ${s.end} (${durLabel(s.start,s.end)})</span></div>
+    ${s.monthstart?`<div class="info-row"><span class="ik">মাস শুরু</span><span class="iv">${fmtDate(s.monthstart)}</span></div>`:''}
+    ${s.topic?`<div class="info-row"><span class="ik">বিষয় / টপিক</span><span class="iv">${s.topic}</span></div>`:''}
+    ${s.note?`<div class="info-row"><span class="ik">নোট</span><span class="iv">${s.note}</span></div>`:''}
+  `;
+  document.getElementById('detail-del-btn').onclick = () => {
+    if (confirm('এই সেশন মুছবে?')) deleteSession(id);
+  };
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target===document.getElementById('detail-modal'))
+    document.getElementById('detail-modal').classList.remove('open');
+}
+
+/* ── TODAY ───────────────────────────────────────── */
+function renderToday() {
+  const today = todayStr();
+  const list = DB.sessions().filter(s=>s.date===today);
+  const wrap = document.getElementById('today-wrap');
+  if (!list.length) { wrap.style.display='none'; return; }
+  wrap.style.display='';
+  document.getElementById('today-list').innerHTML = list.map(s =>
+    `<div class="session-item" onclick="openDetail('${s.id}')" style="cursor:pointer">
+      <div class="si-body">
+        <div class="si-name">${s.studentName}</div>
+        <div class="si-time">⏰ ${s.start} — ${s.end} &nbsp;·&nbsp; ${durLabel(s.start,s.end)}</div>
+        ${s.topic?`<div class="si-topic">📚 ${s.topic}</div>`:''}
+        ${s.note?`<div class="si-note">📝 ${s.note}</div>`:''}
+      </div>
+      <div class="si-date-badge">আজ</div>
+    </div>`
+  ).join('');
+}
+
+/* ── HISTORY ─────────────────────────────────────── */
+function renderHistory() {
+  const sid   = document.getElementById('flt-student').value;
+  const month = document.getElementById('flt-month').value;
+  let list = DB.sessions();
+  if (sid)   list = list.filter(s=>s.studentId===sid);
+  if (month) list = list.filter(s=>s.date&&s.date.startsWith(month));
+  list = [...list].sort((a,b)=>b.date.localeCompare(a.date)||b.start.localeCompare(a.start));
+
+  const el = document.getElementById('history-list');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><div class="ei">📋</div><p>এই ফিল্টারে কোনো সেশন নেই।</p></div>`;
+    return;
+  }
+
+  // group by date
+  const groups = {};
+  list.forEach(s=>{ if(!groups[s.date]) groups[s.date]=[]; groups[s.date].push(s); });
+
+  el.innerHTML = Object.entries(groups).map(([date, items]) =>
+    `<div class="date-header">${fmtDate(date)}</div>` +
+    items.map(s=>
+      `<div class="session-item" onclick="openDetail('${s.id}')" style="cursor:pointer">
+        <div class="si-body">
+          <div class="si-name">${s.studentName}</div>
+          <div class="si-time">⏰ ${s.start} — ${s.end} &nbsp;·&nbsp; ${durLabel(s.start,s.end)}</div>
+          ${s.topic?`<div class="si-topic">📚 ${s.topic}</div>`:''}
+          ${s.note?`<div class="si-note">📝 ${s.note}</div>`:''}
+        </div>
+        <div class="si-date-badge">${fmtDateShort(date)}</div>
+      </div>`
+    ).join('')
+  ).join('');
+}
+
+/* ── SUMMARY ─────────────────────────────────────── */
+function renderSummary() {
+  const month = document.getElementById('sum-month').value || monthStr();
+  document.getElementById('sum-month').value = month;
+  const sessions = DB.sessions().filter(s=>s.date&&s.date.startsWith(month));
+  const students = DB.students();
+  const el = document.getElementById('summary-content');
+
+  if (!sessions.length) {
+    el.innerHTML = `<div class="empty-state"><div class="ei">📊</div><p>এই মাসে কোনো সেশন নেই।</p></div>`;
+    return;
+  }
+
+  // aggregate per student
+  const map = {};
+  sessions.forEach(s=>{
+    if(!map[s.studentId]) map[s.studentId]={name:s.studentName,count:0,mins:0,monthstart:s.monthstart,sessions:[]};
+    map[s.studentId].count++;
+    map[s.studentId].mins += Math.max(0, toMin(s.end)-toMin(s.start));
+    map[s.studentId].sessions.push(s);
+    if(s.monthstart && !map[s.studentId].monthstart) map[s.studentId].monthstart=s.monthstart;
+  });
+
+  const totalMins = Object.values(map).reduce((a,b)=>a+b.mins,0);
+  const th=Math.floor(totalMins/60), tm=totalMins%60;
+  const monthLabel = new Date(month+'-01').toLocaleDateString('bn-BD',{month:'long',year:'numeric'});
+
+  el.innerHTML = `
+    <div class="month-banner">
+      <div>
+        <div class="month-banner-title">${monthLabel}</div>
+        <div class="month-banner-sub">মোট ${sessions.length}টি সেশন &nbsp;·&nbsp; ${th}ঘ ${tm}মি</div>
+      </div>
+      <div class="month-banner-icon">📊</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ছাত্র ভিত্তিক ওভারভিউ</div>
+      <table class="sum-table">
+        <thead><tr><th>ছাত্র</th><th>সেশন</th><th>সময়</th><th>বেতন</th></tr></thead>
+        <tbody>
+          ${Object.values(map).map(d=>{
+            const st = students.find(s=>s.name===d.name);
+            const h=Math.floor(d.mins/60), m=d.mins%60;
+            return `<tr>
+              <td><strong>${d.name}</strong>${st?.cls?`<br><small style="color:var(--muted)">${st.cls}</small>`:''}</td>
+              <td><span class="tag tag-blue">${d.count}টি</span></td>
+              <td>${h}ঘ ${m}মি</td>
+              <td>${st?.fee?`৳${st.fee}`:'—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    ${Object.values(map).map(d=>{
+      const st=students.find(s=>s.name===d.name);
+      const sorted=[...d.sessions].sort((a,b)=>a.date.localeCompare(b.date));
+      const h=Math.floor(d.mins/60), m=d.mins%60;
+      return `<div class="card">
+        <div class="card-title">📚 ${d.name}${st?.cls?` (${st.cls})`:''}</div>
+        ${st?.fee?`<div class="info-row"><span class="ik">মাসিক বেতন</span><span class="iv">৳${st.fee}</span></div>`:''}
+        ${d.monthstart?`<div class="info-row"><span class="ik">মাস শুরু</span><span class="iv">${fmtDate(d.monthstart)}</span></div>`:''}
+        <div class="info-row"><span class="ik">মোট সেশন</span><span class="iv">${d.count}টি</span></div>
+        <div class="info-row"><span class="ik">মোট সময়</span><span class="iv">${h}ঘ ${m}মি</span></div>
+        <hr class="divider">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px">প্রতিটি সেশন</div>
+        ${sorted.map(s=>`
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:3px">
+            <div style="display:flex;justify-content:space-between;width:100%">
+              <span class="ik">${fmtDate(s.date)}</span>
+              <span class="iv">${s.start}–${s.end} (${durLabel(s.start,s.end)})</span>
+            </div>
+            ${s.topic?`<span style="color:var(--accent);font-size:0.75rem">📚 ${s.topic}</span>`:''}
+            ${s.note?`<span style="color:var(--muted);font-size:0.73rem;font-style:italic">📝 ${s.note}</span>`:''}
+          </div>`).join('')}
+      </div>`;
+    }).join('')}
+  `;
+}
+
+/* ── INIT ────────────────────────────────────────── */
+function init() {
+  document.getElementById('log-date').value = todayStr();
+  document.getElementById('flt-month').value = monthStr();
+  document.getElementById('sum-month').value = monthStr();
+  syncDropdowns();
+  updateDash();
+  renderToday();
+
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+}
+
+init();
+</script>
+</body>
+</html>
