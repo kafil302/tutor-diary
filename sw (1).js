@@ -1,74 +1,35 @@
-const CACHE_NAME = 'tutor-diary-v2';
-
-// সব দরকারি ফাইল cache করো
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+ const cacheName = 'tutor-diary-v2'; // ভার্সন পরিবর্তন করুন (v1 থেকে v2)
+const assets = [
+  '/',
+  '/index-3.html',
+  '/index-4.html',
+  '/manifest.json'
+  // আপনার অন্যান্য CSS বা JS ফাইল থাকলে এখানে যোগ করুন
 ];
 
-// ইনস্টলের সময় সব ফাইল cache করো
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS);
-    }).then(() => self.skipWaiting())
-  );
-});
-
-// পুরনো cache মুছো, নতুনটা চালু করো
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      )
-    ).then(() => self.clients.claim())
-  );
-});
-
-// Cache-first strategy:
-// আগে cache থেকে দাও, না পেলে network থেকে আনো এবং cache করো
-self.addEventListener('fetch', e => {
-  // শুধু GET request handle করো
-  if (e.request.method !== 'GET') return;
-
-  e.respondWith(
-    caches.open(CACHE_NAME).then(async cache => {
-      // cache-এ আছে?
-      const cached = await cache.match(e.request);
-      if (cached) {
-        // background-এ নতুন version আনার চেষ্টা করো
-        fetch(e.request).then(fresh => {
-          if (fresh && fresh.ok) cache.put(e.request, fresh.clone());
-        }).catch(() => {});
-        return cached; // cache থেকেই দাও (অফলাইনেও কাজ করবে)
-      }
-
-      // cache-এ নেই — network থেকে আনো
-      try {
-        const fresh = await fetch(e.request);
-        if (fresh && fresh.ok) cache.put(e.request, fresh.clone());
-        return fresh;
-      } catch {
-        // network-ও নেই — index.html দাও
-        return cache.match('./index.html');
-      }
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(cacheName).then((cache) => {
+      return cache.addAll(assets);
     })
   );
 });
 
-// Background sync: অনলাইন হলে cache রিফ্রেশ করো
-self.addEventListener('sync', e => {
-  if (e.tag === 'cache-refresh') {
-    e.waitUntil(
-      caches.open(CACHE_NAME).then(cache =>
-        Promise.all(ASSETS.map(url =>
-          fetch(url).then(r => { if (r.ok) cache.put(url, r); }).catch(() => {})
-        ))
-      )
-    );
-  }
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
+  );
+});
+
+// পুরনো ক্যাশ ডিলিট করার কোড (এটি খুব জরুরি)
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((key) => key !== cacheName).map((key) => caches.delete(key))
+      );
+    })
+  );
 });
