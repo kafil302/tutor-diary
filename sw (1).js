@@ -1,10 +1,9 @@
  const cacheName = 'tutor-diary-v2'; // ভার্সন পরিবর্তন করুন (v1 থেকে v2)
 const assets = [
-  '/',
-  '/index-3.html',
-  '/index-4.html',
-  '/manifest.json'
-  // আপনার অন্যান্য CSS বা JS ফাইল থাকলে এখানে যোগ করুন
+  '/tutor-diary/',
+  '/tutor-diary/index.html',
+  '/tutor-diary/manifest.json',
+  '/tutor-diary/sw.js'
 ];
 
 self.addEventListener('install', (event) => {
