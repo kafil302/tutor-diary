@@ -829,7 +829,7 @@ function init() {
 
   // Register Service Worker — শক্তিশালী অফলাইন সাপোর্ট
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').then(reg => {
+    navigator.serviceWorker.register('/tutor-diary/sw.js').then(reg => {
       // অনলাইন হলে cache রিফ্রেশ করো
       window.addEventListener('online', () => {
         if (reg.active) {
